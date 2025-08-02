@@ -16,6 +16,10 @@ public actor AudioConverter {
         interleaved: false
     )!
     
+    public init(converter: AVAudioConverter? = nil) {
+        self.converter = converter
+    }
+    
     /// Convert an AVAudioPCMBuffer to ASR-ready Float array
     /// - Parameter buffer: Input audio buffer (any format)
     /// - Returns: Float array at 16kHz mono
