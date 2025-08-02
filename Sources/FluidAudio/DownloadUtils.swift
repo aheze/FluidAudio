@@ -4,7 +4,6 @@ import OSLog
 
 /// HuggingFace model downloader based on swift-transformers implementation
 public class DownloadUtils {
-
     private static let logger = Logger(subsystem: "com.fluidaudio", category: "DownloadUtils")
 
     /// Download progress callback
@@ -14,7 +13,7 @@ public class DownloadUtils {
     public struct DownloadConfig {
         public let timeout: TimeInterval
 
-        public init(timeout: TimeInterval = 1800) {  // 30 minutes for large models
+        public init(timeout: TimeInterval = 1800) { // 30 minutes for large models
             self.timeout = timeout
         }
 
@@ -73,15 +72,6 @@ public class DownloadUtils {
         // Ensure base directory exists
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
 
-        // Download repo if needed
-        let repoPath = directory.appendingPathComponent(repo.folderName)
-        if !FileManager.default.fileExists(atPath: repoPath.path) {
-            logger.info("Models not found in cache at \(repoPath.path)")
-            try await downloadRepo(repo, to: directory)
-        } else {
-            logger.info("Found \(repo.folderName) locally, no download needed")
-        }
-
         // Configure CoreML
         let config = MLModelConfiguration()
         config.computeUnits = computeUnits
@@ -89,7 +79,7 @@ public class DownloadUtils {
         // Load each model
         var models: [String: MLModel] = [:]
         for name in modelNames {
-            let modelPath = repoPath.appendingPathComponent(name)
+            let modelPath = directory.appendingPathComponent(name)
             guard FileManager.default.fileExists(atPath: modelPath.path) else {
                 throw CocoaError(
                     .fileNoSuchFile,
@@ -178,8 +168,7 @@ public class DownloadUtils {
                     path: file.path,
                     to: repoPath.appendingPathComponent(file.path),
                     expectedSize: file.size,
-                    config: .default
-                )
+                    config: .default)
 
             default:
                 break
@@ -241,8 +230,7 @@ public class DownloadUtils {
                     to: destination.appendingPathComponent(item.path),
                     expectedSize: expectedSize,
                     config: .default,
-                    progressHandler: createProgressHandler(for: item.path, size: expectedSize)
-                )
+                    progressHandler: createProgressHandler(for: item.path, size: expectedSize))
 
             default:
                 break
@@ -283,8 +271,8 @@ public class DownloadUtils {
 
         // Check if file already exists and is complete
         if let attrs = try? FileManager.default.attributesOfItem(atPath: destination.path),
-            let fileSize = attrs[.size] as? Int64,
-            fileSize == expectedSize
+           let fileSize = attrs[.size] as? Int64,
+           fileSize == expectedSize
         {
             logger.info("File already downloaded: \(path)")
             progressHandler?(1.0)
@@ -297,7 +285,7 @@ public class DownloadUtils {
         // Check if we can resume a partial download
         var startByte: Int64 = 0
         if let attrs = try? FileManager.default.attributesOfItem(atPath: tempURL.path),
-            let fileSize = attrs[.size] as? Int64
+           let fileSize = attrs[.size] as? Int64
         {
             startByte = fileSize
             logger.info("⏸️ Resuming download from \(formatBytes(Int(startByte)))")
@@ -315,12 +303,11 @@ public class DownloadUtils {
                 startByte: startByte,
                 expectedSize: Int64(expectedSize),
                 config: config,
-                progressHandler: progressHandler
-            )
+                progressHandler: progressHandler)
 
             // Verify file size before moving
             if let attrs = try? FileManager.default.attributesOfItem(atPath: tempURL.path),
-                let fileSize = attrs[.size] as? Int64
+               let fileSize = attrs[.size] as? Int64
             {
                 if fileSize != expectedSize {
                     logger.warning(
@@ -367,7 +354,7 @@ public class DownloadUtils {
         let (tempFile, response) = try await session.download(for: request)
 
         guard let httpResponse = response as? HTTPURLResponse,
-            httpResponse.statusCode == 200
+              httpResponse.statusCode == 200
         else {
             throw URLError(.badServerResponse)
         }
@@ -408,8 +395,8 @@ public class DownloadUtils {
 
         struct LFSInfo: Codable {
             let size: Int
-            let sha256: String?  // Some repos might have this
-            let oid: String?  // Most use this instead
+            let sha256: String? // Some repos might have this
+            let oid: String? // Most use this instead
             let pointerSize: Int?
 
             enum CodingKeys: String, CodingKey {

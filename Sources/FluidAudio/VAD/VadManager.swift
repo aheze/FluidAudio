@@ -42,7 +42,7 @@ public actor VadManager {
 
     public func initialize(from directory: URL? = nil) async throws {
         let startTime = Date()
-        logger.info("Initializing VAD system with CoreML")
+        logger.info("Initializing VAD system with CoreML: \(directory?.absoluteString ?? "")")
 
         do {
             try await loadCoreMLModelsWithRecovery(from: directory)
